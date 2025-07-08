@@ -1,22 +1,28 @@
 package message
 
 const (
-	LoginMesType = "LoginMes"
+	LoginMesType    = "LoginMes"
 	LoginResMesType = "LoginResMes"
+	RegisterMesType = "RegisterMes"
 )
 
 type Message struct {
 	Type string `json:"type"`
-	Data string	`json:"data"`
+	Data string `json:"data"`
 }
 
 type LoginMes struct {
-	UserId int `json:"userId"` // 用戶id 
-	UserPwd string `json:"userPwd"`  // 用戶密碼
-	UserName string`json:"userName"` // 用戶名
+	UserId   int    `json:"userId"`   // 用戶id
+	UserPwd  string `json:"userPwd"`  // 用戶密碼
+	UserName string `json:"userName"` // 用戶名
 }
 
 type LoginResMes struct {
-	Code int `json:"code"` // 返回狀態碼 500:用戶未註冊 200:登入成功
-	Error string  `json:"error"` // 返回錯誤訊息
+	Code  int    `json:"code"`  // 返回狀態碼 500:用戶未註冊 200:登入成功
+	Error string `json:"error"` // 返回錯誤訊息
+}
+
+type RegisterMes struct {
+	// ..s
+
 }
