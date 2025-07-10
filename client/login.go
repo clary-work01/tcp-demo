@@ -2,17 +2,14 @@ package client
 
 import (
 	"chatroom/common/message"
-	"encoding/binary"
 	"encoding/json"
 	"fmt"
 	"net"
-	"time"
 )
 
 func Login(userId int, userPwd string)(err error){
 
 	// 開始訂協議
-	// return nil
 
 	// 1. 連接到服務器
 	conn,err:=  net.Dial("tcp","localhost:8889") // 之後會去讀配置文件
@@ -49,28 +46,26 @@ func Login(userId int, userPwd string)(err error){
 	}
 
 	// 7. data就是我們要發送的消息
-	// 7.1 先把data的長度發送給服務器 
-	// 使用 BigEndian 把data長度從 int轉[]byte
-	buf := make([]byte, 4) // int32 需要4 byte
-	binary.BigEndian.PutUint32(buf, uint32(len(data)))
-	fmt.Printf("BigEndian: %v\n", buf)
-	// 發送data長度
-	n,err := conn.Write(buf)
-	if n != 4 || err!=nil{
-		fmt.Println("conn.Write失敗 err=",err)
-		return 
+	err = message.WritePkg(conn,data)
+	if err!= nil{
+		fmt.Println("write pkg fail",err)
+		return
 	}
-	fmt.Printf("客戶端成功發送長度=%d 內容%s",len(data),string(data))
-
-	// 發送消息本身
-	_,err = conn.Write(data)
-	if err !=nil {
-		fmt.Println("conn.Write() fail",err)
-		return 
-	}
+	
 	// 處理服務器返回的消息	...
-	time.Sleep(20*time.Second)
-	fmt.Println("休眠了20...")
-    
+	mes, err = message.ReadPkg(conn)
+	if err!=nil{
+		fmt.Println("readPkg() fail",err)
+		return 
+	}
+	// 將 mes的Data反序列化成LoginResMes
+	var loginResMes message.LoginResMes
+	err = json.Unmarshal([]byte(mes.Data),&loginResMes)
+	if loginResMes.Code == 200 {
+		fmt.Println("登入成功")
+	}else if loginResMes.Code == 500 {
+		fmt.Println(loginResMes.Error)
+	} 
+	
 	return 
 }	

@@ -92,13 +92,8 @@ func main(){
 		fmt.Println("請輸入用戶密碼")
 		fmt.Scanf("%s\n",&userPwd)	
 		// 把登入函數寫到另外一個文件
-		err := client.Login(userId,userPwd)
-		if err!=nil{
-			fmt.Println("登入失敗")
-		}else{
-			fmt.Println("登入成功")
-		}
-	}else{
-		
+		client.Login(userId,userPwd)
+	}else if key == 2{
+		fmt.Println("進行用戶註冊邏輯...")
 	}
 }
