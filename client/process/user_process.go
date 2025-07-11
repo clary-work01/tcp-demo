@@ -24,6 +24,7 @@ func (u *UserProcess)Login(userId int, userPwd string)(err error){
 	// 拿到conn後 應該馬上寫一個延時關閉!!!!!!!
 	defer conn.Close()
 
+
 	// 2. 準備通過conn發送消息給服務
 	var mes message.Message
 	mes.Type = message.LoginMesType
@@ -70,7 +71,14 @@ func (u *UserProcess)Login(userId int, userPwd string)(err error){
 	var loginResMes message.LoginResMes
 	err = json.Unmarshal([]byte(mes.Data),&loginResMes)
 	if loginResMes.Code == 200 {
-		fmt.Println("登入成功")
+	
+		// 這裡我們還需要在客戶端啟動一個協程
+		// 該協程保持和服務器端的通訊 如果服務器有數據突送給客戶端 則接收並顯示在客戶端的終端	
+		go ProcessServerMes(conn)
+		for{
+		   // 1. 顯示我們的登入成功菜單
+			ShowMenu()
+		}
 	}else if loginResMes.Code == 500 {
 		fmt.Println(loginResMes.Error)
 	} 
