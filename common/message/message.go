@@ -34,30 +34,33 @@ type RegisterMes struct {
 	// ..s
 
 }
-
-func ReadPkg(conn net.Conn)(mes Message, err error){
-	buf := make([]byte,8096)
+// 把函數放到結構體中
+type Transfer struct{
+	Conn net.Conn
+	Buf [8096]byte
+}
+func (t *Transfer) ReadPkg()(mes Message, err error){
 	// 讀取客戶端發送的消息
 	// 從conn讀 4個字節 到buf去
-	_,err = conn.Read(buf[:4])
+	_,err = t.Conn.Read(t.Buf[:4])
 	if err!=nil{
 		err = errors.New("read pkg header error")
 		return 
 	}
-	fmt.Println("讀到的buf=",buf[:4])
+	fmt.Println("讀到的buf=",t.Buf[:4])
 	// 把buf[:4] 從[]byte 轉成 int
-    pkgLen := int(binary.BigEndian.Uint32(buf[:4]))
+    pkgLen := int(binary.BigEndian.Uint32(t.Buf[:4]))
     fmt.Printf("pkgLen= %d\n", pkgLen)
 
 	// 從conn讀 pkgLen個字節 到buf去
-	n,err := conn.Read(buf[:pkgLen])
+	n,err := t.Conn.Read(t.Buf[:pkgLen])
 	if n != pkgLen || err != nil{
 		err = errors.New("read pkg body error")
 		return 
 	}
 
 	// 把 buf 反序列化成 message.Message
-	err = json.Unmarshal(buf[:pkgLen],&mes)
+	err = json.Unmarshal(t.Buf[:pkgLen],&mes)
 	if err!=nil {
 		fmt.Println("json.Unmarshal err= ",err)
 		return 
@@ -69,20 +72,20 @@ func ReadPkg(conn net.Conn)(mes Message, err error){
 		// fmt.Println(msg)
 		return 
 }
-func WritePkg(conn net.Conn,data []byte)(err error){
+func (t *Transfer) WritePkg(data []byte)(err error){
 	// 先發送一個長度給對方
 	buf := make([]byte, 4) // int32 需要4 byte
 	binary.BigEndian.PutUint32(buf, uint32(len(data)))
 	fmt.Println("buf=",buf[:4])
 	// 發送data長度
-	n,err := conn.Write(buf)
+	n,err := t.Conn.Write(buf)
 	if n != 4 || err!=nil{
 		fmt.Println("conn.Write失敗 err=",err)
 		return 
 	}
 	
 	// 發送data本身
-	_,err = conn.Write(data)
+	_,err = t.Conn.Write(data)
 	if err !=nil {
 		fmt.Println("conn.Write() fail",err)
 		return 

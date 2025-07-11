@@ -7,8 +7,12 @@ import (
 	"net"
 )
 
+type UserProcess struct {
+	Conn net.Conn
+}
+
 // 編寫一個函數 專門處理登錄請求
-func ServerProcessLogin(conn net.Conn, mes *message.Message){
+func (u *UserProcess)ServerProcessLogin(conn net.Conn, mes *message.Message){
 	// 核心代碼
 	// 1. 先從mes中取出mes.Data 並直接反序列化成LoginMes
 	var loginMes message.LoginMes
@@ -51,7 +55,11 @@ func ServerProcessLogin(conn net.Conn, mes *message.Message){
 		return 
 	}
 	// 6 發送 將其封裝到一個writePkg函數
-	err = message.WritePkg(conn,data)
+	// 因為使用分層模式(mvc) 先創建一個Transfer實例 然後調用WritePkg方法
+	transfer := &message.Transfer{
+		Conn: u.Conn,
+	}
+	err = transfer.WritePkg(data)
 	if err != nil{
 		fmt.Println("writePkg fail",err)
 		return 

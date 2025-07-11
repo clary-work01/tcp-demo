@@ -47,7 +47,7 @@
 package main
 
 import (
-	"chatroom/client"
+	"chatroom/client/process"
 	"fmt"
 )
 
@@ -92,7 +92,8 @@ func main(){
 		fmt.Println("請輸入用戶密碼")
 		fmt.Scanf("%s\n",&userPwd)	
 		// 把登入函數寫到另外一個文件
-		client.Login(userId,userPwd)
+		userProcess := &process.UserProcess{}
+		userProcess.Login(userId,userPwd)
 	}else if key == 2{
 		fmt.Println("進行用戶註冊邏輯...")
 	}

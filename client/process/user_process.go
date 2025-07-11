@@ -1,4 +1,4 @@
-package client
+package process
 
 import (
 	"chatroom/common/message"
@@ -7,7 +7,11 @@ import (
 	"net"
 )
 
-func Login(userId int, userPwd string)(err error){
+
+type UserProcess struct {
+
+}
+func (u *UserProcess)Login(userId int, userPwd string)(err error){
 
 	// 開始訂協議
 
@@ -46,14 +50,18 @@ func Login(userId int, userPwd string)(err error){
 	}
 
 	// 7. data就是我們要發送的消息
-	err = message.WritePkg(conn,data)
+	// 因為使用分層模式(mvc) 先創建一個Transfer實例 然後調用WritePkg方法
+	transfer := &message.Transfer{
+		Conn: conn,
+	}
+	err = transfer.WritePkg(data)
 	if err!= nil{
 		fmt.Println("write pkg fail",err)
 		return
 	}
 	
 	// 處理服務器返回的消息	...
-	mes, err = message.ReadPkg(conn)
+	mes, err = transfer.ReadPkg()
 	if err!=nil{
 		fmt.Println("readPkg() fail",err)
 		return 
