@@ -77,7 +77,6 @@ func main(){
 			fmt.Scanf("%d\n",&userId)	
 			fmt.Println("請輸入用戶密碼")
 			fmt.Scanf("%s\n",&userPwd)	
-			// 完成登入
 			// 創建一個UserProcess實例
 			userProcess := &process.UserProcess{}
 			err := userProcess.Login(userId,userPwd)

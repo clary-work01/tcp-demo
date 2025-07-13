@@ -1,8 +1,10 @@
 package main
 
 import (
+	"chatroom/server/model"
 	"fmt"
 	"net"
+	"time"
 )
 
 func process2(conn net.Conn){
@@ -19,7 +21,15 @@ func process2(conn net.Conn){
 	}
 }
 
+// 這裡編寫一個函數 完成對UserDao的初始化任務
+func initUserDao(){
+	model.MyUserDao = model.NewUserDao(rdb)
+}
+
 func main(){
+	initRedis("localhost:6379",16,0,300*time.Second)
+	initUserDao()
+
 	fmt.Println("服務器在8889端口監聽...")
 	listen ,err := net.Listen("tcp","0.0.0.0:8889")
 

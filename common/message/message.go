@@ -1,6 +1,7 @@
 package message
 
 import (
+	"chatroom/common"
 	"encoding/binary"
 	"encoding/json"
 	"errors"
@@ -12,6 +13,7 @@ const (
 	LoginMesType    = "LoginMes"
 	LoginResMesType = "LoginResMes"
 	RegisterMesType = "RegisterMes"
+	RegisterResMesType = "RegisterResMes"
 )
 
 type Message struct {
@@ -31,8 +33,13 @@ type LoginResMes struct {
 }
 
 type RegisterMes struct {
-	// ..s
+	User common.User `json:"user"`
 
+}
+
+type RegisterResMes struct {
+	Code  int    `json:"code"`  // 返回狀態碼 400:用戶已經存在ㄑ 200:註冊成功
+	Error string `json:"error"` // 返回錯誤訊息
 }
 // 把函數放到結構體中
 type Transfer struct{

@@ -2,6 +2,7 @@ package process
 
 import (
 	"chatroom/common/message"
+	"chatroom/server/model"
 	"encoding/json"
 	"fmt"
 	"net"
@@ -28,16 +29,27 @@ func (u *UserProcess)ServerProcessLogin(conn net.Conn, mes *message.Message){
 	// 2 聲明一個 LoginResMes
 	var loginResMes message.LoginResMes
 
+	// 我們需要到redis去完成用戶驗證
 	// 如果用戶id=100 pwd=123456 認為合法 否則不合法
-	if loginMes.UserId == 100 && loginMes.UserPwd == "123456"{
-		// 合法
-		loginResMes.Code = 200
+	user,err := model.MyUserDao.Login(loginMes.UserId,loginMes.UserPwd)
+
+	if err!=nil {
+		if err.Error()== model.ERROR_USER_NOT_EXISTS{
+			loginResMes.Code = 500 // 500狀態碼 表示該用戶不存在
+			loginResMes.Error = model.ERROR_USER_NOT_EXISTS
+		}else if   err.Error() == model.ERROR_USER_PWD{
+			loginResMes.Code = 403 
+			loginResMes.Error = model.ERROR_USER_PWD
+		}else{
+			loginResMes.Code = 500 
+			loginResMes.Error = "服務器內部錯誤"
+		}
+
 	}else{
-		// 不合法
-		loginResMes.Code = 500 // 500狀態碼 表示該用戶不存在
-		loginResMes.Error = "該用戶不存在 請註冊再使用..."
+		loginResMes.Code = 200
+		fmt.Println(user,"登入成功")
 	}
-	
+
 	// 3 將loginResMes 序列化
 	data,err := json.Marshal(loginResMes)
 	if err!=nil{

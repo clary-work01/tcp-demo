@@ -79,9 +79,9 @@ func (u *UserProcess)Login(userId int, userPwd string)(err error){
 		   // 1. 顯示我們的登入成功菜單
 			ShowMenu()
 		}
-	}else if loginResMes.Code == 500 {
+	}else{
 		fmt.Println(loginResMes.Error)
 	} 
 	
-	return 
+	return  
 }	
