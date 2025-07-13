@@ -5,14 +5,28 @@ import (
 	"encoding/json"
 	"fmt"
 	"net"
+	"os"
 )
 
 
 type UserProcess struct {
 
 }
-func (u *UserProcess)Login(userId int, userPwd string)(err error){
 
+func ConnectToServer()(conn net.Conn){
+	// 1. 連接到服務器
+	conn,err:=  net.Dial("tcp","localhost:8889") // 之後會去讀配置文件
+	if err!=nil{
+		fmt.Println("net.Dial err=",err)
+		return 
+	}
+	// 拿到conn後 應該馬上寫一個延時關閉!!!!!!!
+	defer conn.Close()
+
+	return conn
+}
+
+func (u *UserProcess)Login(userId int, userPwd string)(err error){
 	// 開始訂協議
 
 	// 1. 連接到服務器
@@ -23,7 +37,6 @@ func (u *UserProcess)Login(userId int, userPwd string)(err error){
 	}
 	// 拿到conn後 應該馬上寫一個延時關閉!!!!!!!
 	defer conn.Close()
-
 
 	// 2. 準備通過conn發送消息給服務
 	var mes message.Message
@@ -57,7 +70,7 @@ func (u *UserProcess)Login(userId int, userPwd string)(err error){
 	}
 	err = transfer.WritePkg(data)
 	if err!= nil{
-		fmt.Println("write pkg fail",err)
+		fmt.Println("登入發送信息錯誤write pkg fail",err)
 		return
 	}
 	
@@ -85,3 +98,71 @@ func (u *UserProcess)Login(userId int, userPwd string)(err error){
 	
 	return  
 }	
+
+func (u *UserProcess)Register(userId int, userPwd string,userName string)(err error){
+	// 1. 連接到服務器
+	conn,err:=  net.Dial("tcp","localhost:8889") // 之後會去讀配置文件
+	if err!=nil{
+		fmt.Println("net.Dial err=",err)
+		return 
+	}
+	// 拿到conn後 應該馬上寫一個延時關閉!!!!!!!
+	defer conn.Close()
+
+	// 2. 準備通過conn發送消息給服務
+	var mes message.Message
+	mes.Type = message.RegisterMesType
+	
+	// 3. 創建一個RegisterMes結構體實例
+	var registerMes message.RegisterMes
+	registerMes.User.UserId = userId
+	registerMes.User.UserPwd = userPwd
+	registerMes.User.UserName = userName
+
+	// 4. 將registerMes序列化
+	data,err := json.Marshal(registerMes)
+	if err!=nil{
+		fmt.Println("json.Marshal err=",err)
+		return 
+	}
+
+	// 5. 把data賦給mes.Data
+	mes.Data = string(data)
+
+	// 6.將mes序列化
+	data,err = json.Marshal(mes)
+	if err!=nil {
+		fmt.Println("json.Marshal err=",err)
+		return 
+	}
+
+	// 7. data就是我們要發送的消息
+	// 因為使用分層模式(mvc) 先創建一個Transfer實例 然後調用WritePkg方法
+	transfer := &message.Transfer{
+		Conn: conn,
+	}
+	err = transfer.WritePkg(data)
+	if err!= nil{
+		fmt.Println("註冊發送信息錯誤 write pkg fail",err)
+		return
+	}
+
+	// 處理服務器返回的消息	...
+	mes, err = transfer.ReadPkg()
+	if err!=nil{
+		fmt.Println("readPkg() fail",err)
+		return 
+	}
+	// 將 mes的Data反序列化成LoginResMes
+	var regitserResMes message.RegisterResMes
+	err = json.Unmarshal([]byte(mes.Data),&regitserResMes)
+	if regitserResMes.Code == 200 {
+		fmt.Println("註冊成功,請重新登入")
+		os.Exit(0)
+	}else{
+		fmt.Println(regitserResMes.Error)
+		os.Exit(0)
+	} 
+	
+	return  	
+}

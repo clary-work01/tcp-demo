@@ -73,11 +73,10 @@ func (t *Transfer) ReadPkg()(mes Message, err error){
 		return 
 	}
 	
-	
-		// 顯示客戶端輸入內容到終端
-		// msg = msg + string(buf[:n])
-		// fmt.Println(msg)
-		return 
+	// 顯示客戶端輸入內容到終端
+	// msg = msg + string(buf[:n])
+	// fmt.Println(msg)
+	return 
 }
 func (t *Transfer) WritePkg(data []byte)(err error){
 	// 先發送一個長度給對方

@@ -14,8 +14,6 @@ type Processor struct {
 
 // 處理和客戶端的通訊
 func(p *Processor) processing()(error){
-
-
 	fmt.Printf("等待客戶端:%s輸入...\n", p.Conn.RemoteAddr().String())
 	// 循環讀取客戶端發送的消息
 	for{
@@ -57,6 +55,10 @@ func (p *Processor)serverProcessMes(mes *message.Message)(err error){
 			userProcess.ServerProcessLogin(p.Conn,mes)
 		case message.RegisterMesType:
 			// 處理註冊
+			userProcess := &process.UserProcess{
+				Conn : p.Conn,
+			}
+			userProcess.ServerProcessRegister(p.Conn,mes)
 		default : 
 			fmt.Println("消息類型不存在 無法處理")
 	}

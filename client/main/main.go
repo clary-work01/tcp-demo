@@ -54,6 +54,7 @@ import (
 var(
 	userId int
 	userPwd string
+	userName string
 )
 
 func main(){
@@ -85,6 +86,19 @@ func main(){
 			}
 		case 2:
 			fmt.Println("註冊用戶")
+
+			fmt.Println("請輸入用戶id")
+			fmt.Scanf("%d\n",&userId)	
+			fmt.Println("請輸入用戶密碼")
+			fmt.Scanf("%s\n",&userPwd)	
+			fmt.Println("請輸入用戶暱稱")
+			fmt.Scanf("%s\n",&userName)	 
+			// 創建一個UserProcess實例
+			userProcess := &process.UserProcess{}
+			err := userProcess.Register(userId,userPwd,userName)
+			if err != nil{
+				fmt.Println("userProcess.Register() fail",err)
+			}
 		case 3:
 			fmt.Println("退出系統")
 		default :
