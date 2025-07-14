@@ -15,6 +15,7 @@ const (
 	RegisterMesType = "RegisterMes"
 	RegisterResMesType = "RegisterResMes"
 	NotifyUserStatusMesType = "NotifyUserStatusMes"
+	SmsMesType = "SmsMes"
 )
 // 定義幾個用戶的狀態
 const (
@@ -52,6 +53,11 @@ type RegisterResMes struct {
 type NotifyUserStatusMes struct{
 	UserId int `json:"userId"`
 	Status int `json:"status"`
+} 
+// 客戶端發送sms消息
+type SmsMes struct {
+	Content string `json:"content"`
+	common.User  // 嵌入一個匿名結構體 
 }
 
 // 把函數放到結構體中

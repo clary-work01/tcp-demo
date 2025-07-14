@@ -21,18 +21,22 @@ func ShowMenu(){
 	var key int
 	fmt.Scanf("%d\n",&key)
 	switch key{
-	case 1:
-		// 顯示在線用戶列表
-		showOnlineUsers()
-	case 2:
-		fmt.Println("發送消息")
-	case 3:
-		fmt.Println("信息列表")
-	case 4:
-		fmt.Println("你選擇了退出系統...")
-		os.Exit(0)
-	default :
-		fmt.Println("你的輸入有誤 請重新輸入")
+		case 1:
+			// 顯示在線用戶列表
+			showOnlineUsers()
+		case 2:
+			fmt.Println("請輸入你想對大家說的話")
+			var content string
+			fmt.Scanf("%s\n",&content)
+			SmsProcess := &SmsProcess{}
+			SmsProcess.SendGroupMsg(content)
+		case 3:
+			fmt.Println("信息列表")
+		case 4:
+			fmt.Println("你選擇了退出系統...")
+			os.Exit(0)
+		default :
+			fmt.Println("你的輸入有誤 請重新輸入")
 	}
 }
 
@@ -51,12 +55,14 @@ func ProcessServerMes(conn net.Conn){
 		// 如果讀到訊息 
 		switch mes.Type{
 			case message.NotifyUserStatusMesType: // 有人上線了
-			//  1. 取出 NotifyUserStatusMes
-			var notifyUserStatusMes message.NotifyUserStatusMes
-			json.Unmarshal([]byte(mes.Data),&notifyUserStatusMes)
+				//  1. 取出 NotifyUserStatusMes
+				var notifyUserStatusMes message.NotifyUserStatusMes
+				json.Unmarshal([]byte(mes.Data),&notifyUserStatusMes)
 
-			//  2. 把此用戶的訊息和狀態保存到客戶端map[int]User中  
-  			updateUserStatus(&notifyUserStatusMes)
+				//  2. 把此用戶的訊息和狀態保存到客戶端map[int]User中  
+				updateUserStatus(&notifyUserStatusMes)
+			case message.SmsMesType: // 有人群發消息了
+				ShowGroupMes(&mes)
 			default:
 				fmt.Println("服務器端返回一個未知的消息類型 ")
 		}

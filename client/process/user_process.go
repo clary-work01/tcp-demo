@@ -87,6 +87,8 @@ func (u *UserProcess)Login(userId int, userPwd string)(err error){
 
 	
 	if loginResMes.Code == 200 {
+		InitCurrentUser(conn,userId,message.UserOnline)
+		
 		// 可以顯示當前在線用戶列表
 		for _,v := range loginResMes.UsersId{
 			// 在線用戶列表排除掉自己的id

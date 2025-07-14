@@ -57,6 +57,10 @@ func (p *Processor)serverProcessMes(mes *message.Message)(err error){
 				Conn : p.Conn,
 			}
 			userProcess.ServerProcessRegister(p.Conn,mes)
+		case message.SmsMesType:
+			// 處理群聊
+			smsProcess := &process.SmsProcess{}
+			smsProcess.SendGroupMes(mes)
 		default : 
 			fmt.Println("消息類型不存在 無法處理")
 	}
