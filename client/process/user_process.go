@@ -1,6 +1,7 @@
 package process
 
 import (
+	"chatroom/common"
 	"chatroom/common/message"
 	"encoding/json"
 	"fmt"
@@ -83,8 +84,22 @@ func (u *UserProcess)Login(userId int, userPwd string)(err error){
 	// 將 mes的Data反序列化成LoginResMes
 	var loginResMes message.LoginResMes
 	err = json.Unmarshal([]byte(mes.Data),&loginResMes)
-	if loginResMes.Code == 200 {
+
 	
+	if loginResMes.Code == 200 {
+		// 可以顯示當前在線用戶列表
+		for _,v := range loginResMes.UsersId{
+			// 在線用戶列表排除掉自己的id
+			if v == userId {
+				continue
+			}
+			user := &common.User{
+				UserId: v,
+				UserStatus: message.UserOnline,
+			}
+			onlineUsers[v] = user
+		}
+		showOnlineUsers()
 		// 這裡我們還需要在客戶端啟動一個協程
 		// 該協程保持和服務器端的通訊 如果服務器有數據突送給客戶端 則接收並顯示在客戶端的終端	
 		go ProcessServerMes(conn)

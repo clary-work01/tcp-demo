@@ -33,8 +33,6 @@ func(p *Processor) processing()(error){
 			}
 		}
 
-		fmt.Println("mes=",mes)
-
 		err = p.serverProcessMes(&mes) 	
 		if err!=nil{
 			fmt.Println("server process mes fail",err)

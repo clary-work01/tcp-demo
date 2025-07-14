@@ -2,6 +2,7 @@ package process
 
 import (
 	"chatroom/common/message"
+	"encoding/json"
 	"fmt"
 	"net"
 	"os"
@@ -11,17 +12,18 @@ import (
 
 func ShowMenu(){
 	fmt.Println("------恭喜xxx登入成功------")
-	fmt.Println("------1. 顯示在線用戶列表------")
-	fmt.Println("------2. 發送消息------")
-	fmt.Println("------3. 信息列表------")
-	fmt.Println("------4. 退出系統------")
-	fmt.Println("------請選擇(1-4):------")
+	fmt.Println("------1. 顯示在線用戶列表")
+	fmt.Println("------2. 發送消息")
+	fmt.Println("------3. 信息列表")
+	fmt.Println("------4. 退出系統")
+	fmt.Println("------請選擇(1-4):")
 
 	var key int
 	fmt.Scanf("%d\n",&key)
 	switch key{
 	case 1:
-		fmt.Println("顯示在線用戶列表")
+		// 顯示在線用戶列表
+		showOnlineUsers()
 	case 2:
 		fmt.Println("發送消息")
 	case 3:
@@ -46,8 +48,17 @@ func ProcessServerMes(conn net.Conn){
 		if err != nil{
 			fmt.Println("ReadPkg() fail",err)
 		}
-		 
-		fmt.Printf("mes=%v\n",mes)
+		// 如果讀到訊息 
+		switch mes.Type{
+			case message.NotifyUserStatusMesType: // 有人上線了
+			//  1. 取出 NotifyUserStatusMes
+			var notifyUserStatusMes message.NotifyUserStatusMes
+			json.Unmarshal([]byte(mes.Data),&notifyUserStatusMes)
+
+			//  2. 把此用戶的訊息和狀態保存到客戶端map[int]User中  
+  			updateUserStatus(&notifyUserStatusMes)
+			default:
+				fmt.Println("服務器端返回一個未知的消息類型 ")
+		}
 	}
-	
 }

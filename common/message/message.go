@@ -14,6 +14,13 @@ const (
 	LoginResMesType = "LoginResMes"
 	RegisterMesType = "RegisterMes"
 	RegisterResMesType = "RegisterResMes"
+	NotifyUserStatusMesType = "NotifyUserStatusMes"
+)
+// 定義幾個用戶的狀態
+const (
+	UserOffline = iota
+	UserOnline 
+ 	UserBusy 
 )
 
 type Message struct {
@@ -29,18 +36,24 @@ type LoginMes struct {
 
 type LoginResMes struct {
 	Code  int    `json:"code"`  // 返回狀態碼 500:用戶未註冊 200:登入成功
+	UsersId []int 
 	Error string `json:"error"` // 返回錯誤訊息
 }
 
 type RegisterMes struct {
 	User common.User `json:"user"`
-
-}
+ }
 
 type RegisterResMes struct {
 	Code  int    `json:"code"`  // 返回狀態碼 400:用戶已經存在ㄑ 200:註冊成功
 	Error string `json:"error"` // 返回錯誤訊息
 }
+// 為了配合服務器端推送用戶狀態變化的消息
+type NotifyUserStatusMes struct{
+	UserId int `json:"userId"`
+	Status int `json:"status"`
+}
+
 // 把函數放到結構體中
 type Transfer struct{
 	Conn net.Conn
@@ -54,10 +67,8 @@ func (t *Transfer) ReadPkg()(mes Message, err error){
 		err = errors.New("read pkg header error")
 		return 
 	}
-	fmt.Println("讀到的buf=",t.Buf[:4])
 	// 把buf[:4] 從[]byte 轉成 int
     pkgLen := int(binary.BigEndian.Uint32(t.Buf[:4]))
-    fmt.Printf("pkgLen= %d\n", pkgLen)
 
 	// 從conn讀 pkgLen個字節 到buf去
 	n,err := t.Conn.Read(t.Buf[:pkgLen])
@@ -73,16 +84,13 @@ func (t *Transfer) ReadPkg()(mes Message, err error){
 		return 
 	}
 	
-	// 顯示客戶端輸入內容到終端
-	// msg = msg + string(buf[:n])
-	// fmt.Println(msg)
+	fmt.Printf("\n\nReadPkg:長度=%d\t內容%s\n\n",pkgLen,mes)
 	return 
 }
 func (t *Transfer) WritePkg(data []byte)(err error){
 	// 先發送一個長度給對方
 	buf := make([]byte, 4) // int32 需要4 byte
 	binary.BigEndian.PutUint32(buf, uint32(len(data)))
-	fmt.Println("buf=",buf[:4])
 	// 發送data長度
 	n,err := t.Conn.Write(buf)
 	if n != 4 || err!=nil{
@@ -97,6 +105,6 @@ func (t *Transfer) WritePkg(data []byte)(err error){
 		return 
 	}
 
-	fmt.Printf("客戶端成功發送\n長度=%d\n內容%s\n",len(data),string(data))
+	fmt.Printf("\n\nWritePkg:長度=%d\t內容%s\n\n",len(data),string(data))
 	return 
 }

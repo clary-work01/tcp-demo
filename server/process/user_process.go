@@ -10,6 +10,52 @@ import (
 
 type UserProcess struct {
 	Conn net.Conn
+	// 增加一個字段 表示該conn是哪個用戶的
+	UserId int
+}
+// 通知所有其他在線用戶我上線了 
+func (u *UserProcess) NotifyOtherOnlineUser(userId int){
+	// 遍歷 onlineUsers 一個一個的通知
+	fmt.Println("onlineUsers",userManager.onlineUsers)
+	for id,userProcess := range userManager.onlineUsers{
+		if id == userId {
+			continue
+		}
+		// 開始通知 另外寫一個方法
+		userProcess.NotifyMyOnlineMsg(userId)
+	}
+}
+func (u *UserProcess) NotifyMyOnlineMsg(userId int){
+	var mes message.Message
+	mes.Type = message.NotifyUserStatusMesType
+
+	var notifyUserStatusMes message.NotifyUserStatusMes
+	notifyUserStatusMes.UserId = userId
+	notifyUserStatusMes.Status = message.UserOnline
+
+	// 將notifyUserStatusMes序列化
+	data,err := json.Marshal(notifyUserStatusMes)
+	if err!=nil{
+		fmt.Println("json.Marshal err",err)
+		return 
+	}
+	mes.Data = string(data)
+	 
+	data,err = json.Marshal(mes)
+	if err!=nil{
+		fmt.Println("json.Marshal err",err)
+		return 
+	}
+	// 發送
+	// 創建一個transfer實例 不停的讀取服務器發送的消息
+	transfer := &message.Transfer{
+		Conn: u.Conn,
+	}
+	err = transfer.WritePkg(data)
+	if err != nil{
+		fmt.Println("notifyMyOnlineMsg WritePkg err",err )
+		return 
+	}
 }
 // 處理註冊請求
 func (u *UserProcess) ServerProcessRegister(conn net.Conn,mes *message.Message)(err error){
@@ -106,8 +152,17 @@ func (u *UserProcess)ServerProcessLogin(conn net.Conn, mes *message.Message)(err
 
 	}else{
 		loginResMes.Code = 200
+		// 這邊用戶登入成功 要把該用戶加入到userManager的onlineUsers中
+		u.UserId = loginMes.UserId 
+		userManager.AddOnlineUser(u)
+		// 通知其他在線用戶我上線了
+		u.NotifyOtherOnlineUser(loginMes.UserId )
+		// 把當前在線的用戶列表放入loginResMes.UserId
+		for id := range userManager.onlineUsers{
+			loginResMes.UsersId = append(loginResMes.UsersId, id)
+		}
 		fmt.Println(user,"登入成功")
-	}
+	} 
 
 	// 3 將loginResMes 序列化
 	data,err := json.Marshal(loginResMes)

@@ -27,6 +27,11 @@ func NewUserDao(c *redis.Client)(userDao *UserDao){
 	return 
 }
 
+// 這裡編寫一個函數 完成對UserDao的初始化任務
+func InitUserDao(rdb *redis.Client){
+	MyUserDao = NewUserDao(rdb)
+}
+
 func(u *UserDao) GetUserById(userId int) (*common.User, error) {
 	
 	// 執行 HGET 命令
